@@ -3,34 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static MusicOfTheDayBot.Logic;
 
 namespace MusicOfTheDayBot
 {
     public class FileHandler
     {
-        public struct Song
-        {
-            public string Name;
-            public string YouTubeLink;
-
-            public Song(string name, string youTubeLink)
-            {
-                Name = name;
-                YouTubeLink = youTubeLink;
-            }
-        };
-
-        public struct GameSongLibrary
-        {
-            public string GameName;
-            public List<Song> Songs;
-
-            public GameSongLibrary(string gameName, List<Song> songs)
-            {
-                GameName = gameName;
-                Songs = songs;
-            }
-        }
+        
 
         private static string _songFolder = "./songlists/";
 
@@ -41,9 +20,14 @@ namespace MusicOfTheDayBot
             foreach(string fileName in GetAllSongListFiles())
             {
                 string gameName = GetGameName(fileName);
+
+                Console.WriteLine($"Game: {gameName}");
+
                 List<Song> gameSongs = GetSongList(fileName);
 
-                songs.Add(new GameSongLibrary(gameName, gameSongs));
+                songs.Add(new GameSongLibrary(fileName, gameName, gameSongs));
+
+                Console.WriteLine("");
             }
 
             return songs;
@@ -63,6 +47,7 @@ namespace MusicOfTheDayBot
                 string[] splitted = line.Split('|');
                 if (splitted.Length != 2) continue;
                 list.Add(new Song(splitted[0], splitted[1]));
+                Console.WriteLine($"Song: {splitted[0]}, Link: {splitted[1]}");
             }
 
             return list;
@@ -78,7 +63,7 @@ namespace MusicOfTheDayBot
         {
             try
             {
-                return File.ReadLines(fileName).First();
+                return File.ReadLines(fileName).First().Substring(1);
             }
             catch (Exception ex)
             {
@@ -88,5 +73,36 @@ namespace MusicOfTheDayBot
             return "";
         }
 
+        public static void SaveNewList(GameSongLibrary library)
+        {
+            try
+            {
+                //File.Delete(library.FileName);
+                //File.CreateText(library.FileName);
+                StreamWriter sw = File.CreateText(library.FileName);
+
+                sw.WriteLine($"#{library.GameName}");
+                foreach(var song in library.Songs)
+                {
+                    sw.WriteLine($"{song.Name}|{song.YouTubeLink}");
+                }
+                sw.Flush();
+                sw.Close();
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        public static string GetFilePath()
+        {
+            return Path.Combine(_songFolder, $"{Path.GetRandomFileName()}.txt");
+        }
+
+        public static void DeleteFile(string fileName)
+        {
+            File.Delete(fileName);
+        }
     }
 }
