@@ -2,7 +2,7 @@
  A music bot which randomly choose a music track and posts it in a Discord channel, developed for the German Xenoblade Discord Community.
  
 # Tasks
-- [ ] Liste einlesen mit Songs und den zugehörigen YouTube Links
+- [x] Liste einlesen mit Songs und den zugehörigen YouTube Links
 	- Song Library unterteilt in die einzelnen Games (XC1, XC2, ...). Pro Game eine eigene Text-Datei.
 - [ ] Discord Commands
 	- [ ] Adding und Removing von Zeitpunkt und Channel
