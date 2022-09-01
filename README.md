@@ -1,5 +1,5 @@
 # MusicOfTheDayBot
- A music bot which randomly choose a music track and posts it in a Discord channel.
+ A music bot which randomly choose a music track and posts it in a Discord channel, developed for the German Xenoblade Discord Community.
  
 # Tasks
 - [ ] Liste einlesen mit Songs und den zugehörigen YouTube Links
