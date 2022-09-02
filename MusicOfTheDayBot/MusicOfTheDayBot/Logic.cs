@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MusicOfTheDayBot.Commands;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -35,10 +36,59 @@ namespace MusicOfTheDayBot
         }
 
         List<GameSongLibrary> _library;
+        DiscordHandler discord;
+        Random rng;
+        CommandInterpreter commandInterpreter;
 
         public Logic()
         {
             _library = FileHandler.GetAllSongs();
+            discord = new DiscordHandler();
+            rng = new Random();
+            commandInterpreter = new CommandInterpreter();
+        }
+
+        public void NewPost(string channelID, string game)
+        {
+            //TODO: Implement only game selected
+
+            if(_library.Count == 0)
+            {
+                return;
+            }
+
+            GameSongLibrary? selectedLibrary;
+
+            if(_library.Count == 1)
+            {
+                selectedLibrary = _library[0];
+            }
+            else
+            {
+                selectedLibrary = _library[rng.Next(0, _library.Count)];
+            }
+
+            Song selectedSong;
+
+            if(selectedLibrary.Value.Songs.Count == 0)
+            {
+
+            }
+
+            if(selectedLibrary.Value.Songs.Count == 1)
+            {
+                selectedSong = selectedLibrary.Value.Songs[0];
+            }
+            else
+            {
+                selectedSong = selectedLibrary.Value.Songs[rng.Next(0, selectedLibrary.Value.Songs.Count)];
+            }
+
+            string message = "";
+            message += $"Der neue Song of the Day ist {selectedSong.Name} aus {selectedLibrary.Value.GameName}! \r\n";
+            message += $"{selectedSong.YouTubeLink}";
+
+            discord.SendMessage(message, channelID);
         }
 
         public void ListAllGames()
@@ -152,6 +202,12 @@ namespace MusicOfTheDayBot
             FileHandler.DeleteFile(fileName);
             Console.WriteLine("Game sucessfully removed");
             ReadAll();
+        }
+
+        //Debug
+        public void NewCommand(string command)
+        {
+            commandInterpreter.ProcessCommand(command);
         }
 
     }

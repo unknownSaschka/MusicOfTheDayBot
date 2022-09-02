@@ -12,8 +12,12 @@ namespace MusicOfTheDayBot
 
         private DiscordSocketClient _client;
 
-        public bool SendMessage(string message)
+        public bool SendMessage(string message, string channelID)
         {
+
+            //Debug
+            Console.WriteLine(message);
+
             return true;
         }
     }

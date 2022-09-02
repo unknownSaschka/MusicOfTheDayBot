@@ -8,15 +8,25 @@ Logic logic = new Logic();
 bool running = true;
 while (running)
 {
-    Console.WriteLine("Type next");
+    Console.WriteLine("Type next | n - new song, r - remove song, a - real all new in, l - list all, ng - new game, rg - remove game, q - quit");
+
+    
 
     string? s = Console.ReadLine();
     if (s == null) continue;
 
+    logic.NewCommand(s);
+
+    /*
     if (s.Equals("q"))
     {
         running = false;
         continue;
+    }
+
+    if (s.Equals("post"))
+    {
+        logic.NewPost("", "");
     }
 
     //new song
@@ -67,4 +77,5 @@ while (running)
         string? gameName = Console.ReadLine();
         logic.RemoveGame(gameName);
     }
+    */
 }
