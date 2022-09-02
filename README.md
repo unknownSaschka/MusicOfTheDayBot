@@ -15,3 +15,20 @@
 - [ ] Liste die speichert, welche Songs zuvor gepostet wurden und nach einstellbarer Anzahl von Zyklen diese wieder aus Liste entfernt.
 	- [ ] Zyklisches Posten
 	- [ ] Speichern und abrufen der Liste
+
+# Planned Commands
+- !addgame "[gameName]" - Adds a new game
+- !removegame "[gameName]" - removes a game
+- !addsong "[game]" "[songname]" "[youtubelink]" - Adds a song and link to a game
+- !changelink "[game]" "[songname]" "[newyoutubelink]" - changes the link to a song
+- !removesong "[game]" "[songname]" - Removes a song from a game
+ 
+- !post "[game]" "[songname]" [#channel (optional)] - posts a song manually
+- !postrandom [#channel (optional)] - posts a randomly selected song
+
+- !list "[game]" - Lists the songlibrary of a game
+- !listgames - lists all games
+
+- !addschedule [#channel] [time (e.g. 18:00)] "[game (optional)]" - adds a schedule for posting a song Sotd at 18:00 every day
+- !listschedules - lists all schedules with their ScheduleID
+- !removeschedule [id] - removes a schedule
