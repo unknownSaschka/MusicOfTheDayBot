@@ -1,4 +1,9 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿/*
+ * This Discord Bot is programmed for the German Xenoblade Discord.
+ * 
+ * Implementation and Idea by unknownSaschka
+ */
+
 using MusicOfTheDayBot;
 
 Console.WriteLine("Starting Song Bot");

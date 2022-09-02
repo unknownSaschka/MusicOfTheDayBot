@@ -4,8 +4,14 @@
 # Tasks
 - [x] Liste einlesen mit Songs und den zugehörigen YouTube Links
 	- Song Library unterteilt in die einzelnen Games (XC1, XC2, ...). Pro Game eine eigene Text-Datei.
-- [ ] Discord Commands
-	- [ ] Adding und Removing von Zeitpunkt und Channel
-	- [ ] Adding und Removing von Tracks
-	- [ ] Auflisten der gespeicherten Tracks (gesamt, pro Game)
+- [ ] Commands
+	- [x] Command Processing
+	- [x] Adding und Removing von Zeitpunkt und Channel
+	- [x] Adding und Removing von Tracks
+	- [x] Auflisten der gespeicherten Tracks (gesamt, pro Game)
+- [ ] Discord implementation
+	- [ ] Rechtesystem
+	- [ ] Discord Umsetzung und Testing
 - [ ] Liste die speichert, welche Songs zuvor gepostet wurden und nach einstellbarer Anzahl von Zyklen diese wieder aus Liste entfernt.
+	- [ ] Zyklisches Posten
+	- [ ] Speichern und abrufen der Liste

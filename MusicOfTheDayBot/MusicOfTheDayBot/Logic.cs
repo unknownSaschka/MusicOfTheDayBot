@@ -9,7 +9,6 @@ namespace MusicOfTheDayBot
 {
     public class Logic
     {
-
         public struct Song
         {
             public string Name;
@@ -207,7 +206,37 @@ namespace MusicOfTheDayBot
         //Debug
         public void NewCommand(string command)
         {
-            commandInterpreter.ProcessCommand(command);
+            //string command;
+            List<string> args;
+            commandInterpreter.ProcessCommand(command, out command, out args);
+
+            switch (command.ToLower())
+            {
+                case "addgame":
+                    break;
+                case "removegame":
+                    break;
+                case "addsong":
+                    break;
+                case "changelink":
+                    break;
+                case "removesong":
+                    break;
+                case "post":
+                    break;
+                case "postrandom":
+                    break;
+                case "list":
+                    break;
+                case "listgames":
+                    break;
+                case "addschedule":
+                    break;
+                case "listschedules":
+                    break;
+                case "removeschedules":
+                    break;
+            }
         }
 
     }

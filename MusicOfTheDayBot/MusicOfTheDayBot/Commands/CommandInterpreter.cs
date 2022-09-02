@@ -16,28 +16,29 @@ namespace MusicOfTheDayBot.Commands
          * !changelink "[game]" "[songname]" "[newyoutubelink]" - changes the link to a song
          * !removesong "[game]" "[songname]" - Removes a song from a game
          * 
-         * !post "[game]" "[songname]" - posts a song manually
-         * !postrandom #channel (optional) - posts a randomly selected song
+         * !post "[game]" "[songname]" [#channel (optional)] - posts a song manually
+         * !postrandom [#channel (optional)] - posts a randomly selected song
          * 
          * !list "[game]" - Lists the songlibrary of a game
          * !listgames - lists all games
          * 
-         * !addschedule #channel [time (e.g. 18:00)] "[game (optional)]" - adds a schedule for posting a song Sotd at 18:00 every day
+         * !addschedule [#channel] [time (e.g. 18:00)] "[game (optional)]" - adds a schedule for posting a song Sotd at 18:00 every day
          * !listschedules - lists all schedules with their ScheduleID
          * !removeschedule [id] - removes a schedule
          * 
          */
 
-        public bool ProcessCommand(string commandLine)
+        public bool ProcessCommand(string commandLine, out string command, out List<string> args)
         {
-            if(commandLine.Length == 0) return false;   //Falls gar nichts eingegeben wurde
+            command = "";
+            args = new List<string>();
+
+            if (commandLine.Length == 0) return false;   //Falls gar nichts eingegeben wurde
 
             if (commandLine.StartsWith('!'))
             {
                 if (commandLine.Length == 1) return false;  //Falls nur ein '!' eingegeben wurde
-
-                string command = "";
-                List<string> args = new List<string>();
+                
                 string currentString = "";
 
                 var inputs = commandLine.Split(' ');
