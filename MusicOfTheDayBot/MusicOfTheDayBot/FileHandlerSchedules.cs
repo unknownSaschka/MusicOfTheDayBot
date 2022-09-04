@@ -20,7 +20,10 @@ namespace MusicOfTheDayBot
 
                 foreach (Schedule schedule in schedules)
                 {
-                    sw.WriteLine($"{schedule.Game}|{schedule.Time}|{schedule.ChannelID}");
+                    string gameName = schedule.Game;
+                    if (gameName?.Length == 0 || gameName == null) gameName = "null";
+
+                    sw.WriteLine($"{gameName}|{schedule.Time}|{schedule.ChannelInfo.GuildID}|{schedule.ChannelInfo.ChannelID}");
                 }
 
                 sw.Flush();
@@ -41,15 +44,18 @@ namespace MusicOfTheDayBot
                 foreach(var line in File.ReadAllLines(FOLDER + FILENAME))
                 {
                     string[] parts = line.Split('|');
-                    schedules.Add(new Schedule { Game = parts[0], Time = parts[1], ChannelID = parts[2] });
+                    string gameName = parts[0];
+                    if (parts[0].Equals("null")) gameName = "";
+                    schedules.Add(new Schedule { Game = gameName, Time = parts[1], ChannelInfo = new Logic.DiscordChannelInfo(ulong.Parse(parts[2]), ulong.Parse(parts[3])) });
                 }
+
             }
             catch(Exception e)
             {
-
+                return new List<Schedule>();
             }
 
-            return new List<Schedule>();
+            return schedules;
         }
     }
 }

@@ -8,6 +8,9 @@ using MusicOfTheDayBot;
 
 Console.WriteLine("Starting Song Bot");
 Logic logic = new Logic();
+logic.discord.Init().GetAwaiter().GetResult();
+
+/*
 
 //console debug
 bool running = true;
@@ -20,9 +23,11 @@ while (running)
     string? s = Console.ReadLine();
     if (s == null) continue;
 
-    logic.NewCommand(s);
+    string info = "";
+    //logic.NewCommand(s, out info);
+    Console.WriteLine(info);
 
-    /*
+    
     if (s.Equals("q"))
     {
         running = false;
@@ -82,5 +87,6 @@ while (running)
         string? gameName = Console.ReadLine();
         logic.RemoveGame(gameName);
     }
-    */
+    
 }
+*/

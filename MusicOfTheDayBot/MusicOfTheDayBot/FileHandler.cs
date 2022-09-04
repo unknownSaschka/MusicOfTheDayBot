@@ -55,8 +55,15 @@ namespace MusicOfTheDayBot
 
         private static List<string> GetAllSongListFiles()
         {
-            var fileNames = Directory.EnumerateFiles(_songFolder, "*.txt");
-            return fileNames.ToList();
+            try
+            {
+                var fileNames = Directory.EnumerateFiles(_songFolder, "*.txt");
+                return fileNames.ToList();
+            }
+            catch(Exception ex)
+            {
+                return new List<string>();
+            }
         }
 
         private static string GetGameName(string fileName)
@@ -73,12 +80,13 @@ namespace MusicOfTheDayBot
             return "";
         }
 
-        public static void SaveNewList(GameSongLibrary library)
+        public static bool SaveNewList(GameSongLibrary library)
         {
             try
             {
                 //File.Delete(library.FileName);
                 //File.CreateText(library.FileName);
+                Directory.CreateDirectory(_songFolder);
                 StreamWriter sw = File.CreateText(library.FileName);
 
                 sw.WriteLine($"#{library.GameName}");
@@ -88,10 +96,13 @@ namespace MusicOfTheDayBot
                 }
                 sw.Flush();
                 sw.Close();
+
+                return true;
             }
             catch(Exception ex)
             {
                 Console.WriteLine(ex.Message);
+                return false;
             }
         }
 

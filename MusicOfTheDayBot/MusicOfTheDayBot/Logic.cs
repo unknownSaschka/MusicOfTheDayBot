@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static MusicOfTheDayBot.DiscordHandler;
 
 namespace MusicOfTheDayBot
 {
@@ -33,21 +34,34 @@ namespace MusicOfTheDayBot
                 Songs = songs;
             }
         }
+        public struct DiscordChannelInfo
+        {
+            public ulong ChannelID;
+            public ulong GuildID;
+
+            public DiscordChannelInfo(ulong channelID, ulong guildID)
+            {
+                ChannelID = channelID;
+                GuildID = guildID;
+            }
+        }
 
         List<GameSongLibrary> _library;
-        DiscordHandler discord;
+        public DiscordHandler discord;
         Random rng;
         CommandInterpreter commandInterpreter;
+        ScheduleLogic scheduler;
 
         public Logic()
         {
             _library = FileHandler.GetAllSongs();
-            discord = new DiscordHandler();
+            discord = new DiscordHandler(this);
             rng = new Random();
             commandInterpreter = new CommandInterpreter();
+            scheduler = new ScheduleLogic(this);
         }
 
-        public void NewPost(string channelID, string game)
+        public void NewRandomPost(DiscordChannelInfo channelInfo)
         {
             //TODO: Implement only game selected
 
@@ -87,17 +101,84 @@ namespace MusicOfTheDayBot
             message += $"Der neue Song of the Day ist {selectedSong.Name} aus {selectedLibrary.Value.GameName}! \r\n";
             message += $"{selectedSong.YouTubeLink}";
 
-            discord.SendMessage(message, channelID);
+            discord.SendMessage(message, channelInfo);
         }
 
-        public void ListAllGames()
+        public bool NewPost(string game, string songname, DiscordChannelInfo channelInfo, out string info)
         {
-            Console.Write("Vorhandene Games: ");
+            GameSongLibrary? gsl = null;
+
+            foreach(var lib in _library)
+            {
+                if (lib.GameName.ToLower().Equals(game.ToLower()))
+                {
+                    gsl = lib;
+                    break;
+                }
+            }
+
+            if(gsl.HasValue)
+            {
+                info = $"Kein Spiel mit dem Namen {game} gefunden!";
+                return false;
+            }
+
+            foreach(var song in gsl.Value.Songs)
+            {
+                if (song.Name.ToLower().Equals(songname.ToLower()))
+                {
+                    string message = "";
+                    message += $"Der neue Song of the Day ist {song.Name} aus {gsl.Value.GameName}! \r\n";
+                    message += $"{song.YouTubeLink}";
+
+                    discord.SendMessage(message, channelInfo);
+                    info = "";
+                    return true;
+                }
+            }
+
+            info = $"Kein Song mit dem Namen {songname} in {game} gefunden!";
+            return false;
+        }
+
+        public void ListAllGames(out string info)
+        {
+            info = "";
+            info += "Vorhandene Gamelibraries: \r\n";
             foreach (var gameLib in _library)
             {
-                Console.Write(gameLib.GameName + ", ");
+               info += gameLib.GameName + ", ";
             }
-            Console.Write("\r\n");
+        }
+
+        public void ListSongs(string game, out string info)
+        {
+            GameSongLibrary? gsl = null;
+
+            foreach (var lib in _library)
+            {
+                if (lib.GameName.ToLower().Equals(game.ToLower()))
+                {
+                    gsl = lib;
+                    break;
+                }
+            }
+
+            if (!gsl.HasValue)
+            {
+                info = $"Kein Spiel mit dem Namen {game} gefunden!";
+                return;
+            }
+
+            info = $"{gsl.Value.GameName}: \r\n";
+            info += "```";
+
+            foreach(Song song in gsl.Value.Songs)
+            {
+                info += $"{song.Name}\r\n";
+            }
+
+            info += "```";
         }
 
         public void ReadAll()
@@ -105,7 +186,7 @@ namespace MusicOfTheDayBot
             _library = FileHandler.GetAllSongs();
         }
 
-        public void AddSong(string gameName, string songName, string youtubeLink)
+        public bool AddSong(string gameName, string songName, string youtubeLink, out string info)
         {
             bool gameFound = false;
 
@@ -120,22 +201,29 @@ namespace MusicOfTheDayBot
                         //falls Song Name oder YouTube Link schon vohanden, nicht nochmal hinzufügen
                         if (song.Name.ToLower().Equals(songName.ToLower()) || song.YouTubeLink.Equals(youtubeLink))
                         {
-                            Console.WriteLine("Song bereits vorhanden");
-                            return;
+                            info = "Song bereits vorhanden";
+                            return false;
                         }
                     }
 
                     gameLib.Songs.Add(new Song(songName, youtubeLink));
                     FileHandler.SaveNewList(gameLib);
-                    Console.WriteLine("Song successfully added!");
+                    //Console.WriteLine("Song successfully added!");
                     break;
                 }
             }
 
-            if (!gameFound) Console.WriteLine($"No Game found with name: {gameName}");
+            if (!gameFound)
+            {
+                info = $"Kein Game gefunden mit dem Namen: {gameName}";
+                return false;
+            }
+
+            info = "Song erfolgreich hinzugefügt!";
+            return true;
         }
 
-        public void RemoveSong(string gameName, string songName)
+        public bool RemoveSong(string gameName, string songName, out string info)
         {
             bool gameFound = false;
 
@@ -158,29 +246,50 @@ namespace MusicOfTheDayBot
 
                     if (toRemove == null)
                     {
-                        Console.WriteLine($"Song not found with name: {songName}");
-                        return;
+                        info = $"Song nicht gefunden mit dem Namen: {songName}";
+                        return false;
                     }
 
                     gameLib.Songs.Remove(toRemove.Value);
                     FileHandler.SaveNewList(gameLib);
-                    Console.WriteLine("Song successfully removed!");
+                    
                     break;
                 }
             }
 
-            if (!gameFound) Console.WriteLine($"No Game found with name: {gameName}");
+            if (!gameFound)
+            {
+                info = $"Kein Game gefunden mit dem Namen: {gameName}";
+                return false;
+            }
+
+            info = "Song successfully removed!";
+            return true;
         }
 
-        public void NewGame(string gameName)
+        public bool NewGame(string gameName, out string info)
         {
+            if (ContainsGame(gameName))
+            {
+                info = "Game ist bereits hinterlegt!";
+                return false;
+            }
+
             GameSongLibrary gsl = new GameSongLibrary(FileHandler.GetFilePath(), gameName, new List<Song>());
-            FileHandler.SaveNewList(gsl);
-            Console.WriteLine("Game sucessfully added!");
-            ReadAll();
+            if (FileHandler.SaveNewList(gsl))
+            {
+                ReadAll();
+                info = "Game sucessfully added!";
+                return true;
+            }
+            else
+            {
+                info = "Error creating file for the game!";
+                return false;
+            }
         }
 
-        public void RemoveGame(string gameName)
+        public bool RemoveGame(string gameName, out string info)
         {
             string? fileName = null;
 
@@ -194,49 +303,153 @@ namespace MusicOfTheDayBot
 
             if(fileName == null)
             {
-                Console.WriteLine("No Game found");
-                return;
+                info = "Game wurde nicht gefunden";
+                return false;
             }
 
             FileHandler.DeleteFile(fileName);
-            Console.WriteLine("Game sucessfully removed");
+            
             ReadAll();
+
+            info = "Game erfolgreich entfernt!";
+            return true;
+        }
+
+        private bool ContainsGame(string gameName)
+        {
+            foreach(var gsl in _library)
+            {
+                if (gsl.GameName.ToLower().Equals(gameName.ToLower()))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void GetCommands(out string info)
+        {
+            info = "Commands: \r\n";
+            info += "!addgame \"[gameName]\" - Adds a new game \r\n";
+            info += "!removegame \"[gameName]\" - removes a game \r\n";
+            info += "!addsong \"[game]\" \"[songname]\" \"[youtubelink]\" - Adds a song and link to a game \r\n";
+            info += "!changelink \"[game]\" \"[songname]\" \"[newyoutubelink]\" - changes the link to a song \r\n";
+            info += "!removesong \"[game]\" \"[songname]\" - Removes a song from a game \r\n";
+
+
+            info += "!post \"[game]\" \"[songname]\" [#channel (optional)] - posts a song manually \r\n";
+            info += "!postrandom [#channel (optional)] - posts a randomly selected song \r\n";
+
+            info += "!list \"[game]\" - Lists the songlibrary of a game \r\n";
+            info += "!listgames - lists all games \r\n";
+
+            info += "!addschedule [#channel] [time (e.g. 18:00)] \"[game(optional)]\" - adds a schedule for posting a song Sotd at 18:00 every day \r\n";
+            info += "!listschedules - lists all schedules with their ScheduleID \r\n";
+            info += "!removeschedule [id] - removes a schedule \r\n";
         }
 
         //Debug
-        public void NewCommand(string command)
+        public bool NewCommand(DiscordMessageInfo message, out string info)
         {
             //string command;
             List<string> args;
-            commandInterpreter.ProcessCommand(command, out command, out args);
+            commandInterpreter.ProcessCommand(message.Message, out string command, out args);
+            info = "";
 
             switch (command.ToLower())
             {
                 case "addgame":
+                    if(args.Count != 1)
+                    {
+                        info = "Command usage: !addgame \"[Game]\"";
+                    }
+                    NewGame(args[0], out info);
                     break;
                 case "removegame":
+                    if(args.Count != 1)
+                    {
+                        info = "Command usage: !removegame \"[Game]\"";
+                    }
+                    RemoveGame(args[0], out info);
                     break;
                 case "addsong":
+                    if(args.Count != 3)
+                    {
+                        info = "Command usage: !addsong \"[game]\" \"[songname]\" \"[youtubelink]\"";
+                    }
+                    AddSong(args[0], args[1], args[2], out info);
                     break;
                 case "changelink":
                     break;
                 case "removesong":
+                    if(args.Count != 2)
+                    {
+                        info = "Command usage: !removesong \"[game]\" \"[songname]\"";
+                    }
+                    RemoveSong(args[0], args[1], out info);
                     break;
                 case "post":
+                    if(args.Count == 2)
+                    {
+                        NewPost(args[0], args[1], new DiscordChannelInfo() { GuildID = message.GuildID, ChannelID = message.ChannelID }, out info);
+                    }
+                    else if(args.Count == 3)
+                    {
+                        NewPost(args[0], args[1], new DiscordChannelInfo() { GuildID = message.GuildID, ChannelID = message.MentionedChannel }, out info);
+                    }
+                    else
+                    {
+                        info = "Command usage: !post \"[game]\" \"[songname]\" [#channel (optional)]";
+                    }
                     break;
                 case "postrandom":
+                    if(args.Count > 1)
+                    {
+                        info = "Command usage: !postrandom [#channel (optional)]";
+                    }
+                    NewRandomPost(new DiscordChannelInfo() { GuildID = message.GuildID, ChannelID = message.MentionedChannel });
                     break;
                 case "list":
+                    if(args.Count != 1)
+                    {
+                        info = "Command usage: !list \"[game]\"";
+                    }
+                    ListSongs(args[0], out info);
                     break;
                 case "listgames":
+                    if(args.Count != 0)
+                    {
+                        info = "Command usage: !listgames";
+                    }
+                    ListAllGames(out info);
                     break;
                 case "addschedule":
+                    if(args.Count != 2)
+                    {
+                        info = "Command usage: !addschedule [#channel] [time (e.g. 18:00)]";
+                    }
+                    scheduler.AddSchedule(args[1], new DiscordChannelInfo() { GuildID = message.GuildID, ChannelID = message.MentionedChannel }, out info);
                     break;
                 case "listschedules":
+                    scheduler.GetAllSchedules(out info);
                     break;
-                case "removeschedules":
+                case "removeschedule":
+                    if(args.Count != 1)
+                    {
+                        info = "Command usage: !removeschedule [id]";
+                    }
+                    scheduler.RemoveSchedule(args[0], out info);
                     break;
+                case "help":
+                    GetCommands(out info);
+                    break;
+                default:
+                    info = "";
+                    return false;
             }
+
+            return true;
         }
 
     }
