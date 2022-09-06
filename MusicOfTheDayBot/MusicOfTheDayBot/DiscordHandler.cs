@@ -103,5 +103,13 @@ namespace MusicOfTheDayBot
 
             return Task.CompletedTask;
         }
+
+        public string GetChannelName(ulong guildID, ulong channelID)
+        {
+            var guild = _client.GetGuild(guildID);
+            var channel = guild.GetChannel(channelID);
+            if (channel == null) return "Don't exist anymore!";
+            return channel.Name;
+        }
     }
 }

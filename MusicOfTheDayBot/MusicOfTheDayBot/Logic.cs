@@ -45,12 +45,19 @@ namespace MusicOfTheDayBot
                 GuildID = guildID;
             }
         }
+        public struct LastPosted
+        {
+            public string GameName;
+            public string SongName;
+        }
 
         List<GameSongLibrary> _library;
         public DiscordHandler discord;
         Random rng;
         CommandInterpreter commandInterpreter;
         ScheduleLogic scheduler;
+
+        private static int _lastPostedAmount = 10;
 
         public Logic()
         {
@@ -70,36 +77,42 @@ namespace MusicOfTheDayBot
                 return;
             }
 
+            List<LastPosted> lastPosteds = FileHandler.LoadLastPosted();
+
+            int tries = 0;
+
             GameSongLibrary? selectedLibrary;
+            Song? selectedSong;
 
-            if(_library.Count == 1)
+            (selectedLibrary, selectedSong) = GetRandomSong();
+
+            while (tries < 10)
             {
-                selectedLibrary = _library[0];
-            }
-            else
-            {
-                selectedLibrary = _library[rng.Next(0, _library.Count)];
+                (selectedLibrary, selectedSong) = GetRandomSong();
+
+                if (selectedLibrary == null || selectedSong == null) return;
+
+                if(!WasPosted(selectedLibrary.Value.GameName, selectedSong.Value, lastPosteds))
+                {
+                    break;
+                }
+
+                tries++;
             }
 
-            Song selectedSong;
-
-            if(selectedLibrary.Value.Songs.Count == 0)
+            if(tries >= 10)
             {
-
+                (selectedLibrary, selectedSong) = GetRandomSong();
             }
 
-            if(selectedLibrary.Value.Songs.Count == 1)
-            {
-                selectedSong = selectedLibrary.Value.Songs[0];
-            }
-            else
-            {
-                selectedSong = selectedLibrary.Value.Songs[rng.Next(0, selectedLibrary.Value.Songs.Count)];
-            }
+            if (selectedLibrary == null || selectedSong == null) return;
+
+            AddToLastPosted(selectedLibrary.Value, selectedSong.Value, lastPosteds);
+            FileHandler.SaveLastPosted(lastPosteds);
 
             string message = "";
-            message += $"Der neue Song of the Day ist {selectedSong.Name} aus {selectedLibrary.Value.GameName}! \r\n";
-            message += $"{selectedSong.YouTubeLink}";
+            message += $"Der neue Song of the Day ist {selectedSong.Value.Name} aus {selectedLibrary.Value.GameName}! \r\n";
+            message += $"{selectedSong.Value.YouTubeLink}";
 
             discord.SendMessage(message, channelInfo);
         }
@@ -432,7 +445,7 @@ namespace MusicOfTheDayBot
                     scheduler.AddSchedule(args[1], new DiscordChannelInfo() { GuildID = message.GuildID, ChannelID = message.MentionedChannel }, out info);
                     break;
                 case "listschedules":
-                    scheduler.GetAllSchedules(out info);
+                    scheduler.GetAllSchedules(out info, discord);
                     break;
                 case "removeschedule":
                     if(args.Count != 1)
@@ -450,6 +463,62 @@ namespace MusicOfTheDayBot
             }
 
             return true;
+        }
+
+        private bool WasPosted(string gameName, Song song, List<LastPosted> lastPosted)
+        {
+            foreach(var posted in lastPosted)
+            {
+                if (posted.GameName.Equals(gameName))
+                {
+                    if (posted.SongName.Equals(song.Name))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private (GameSongLibrary?, Song?) GetRandomSong()
+        {
+            GameSongLibrary? selectedLibrary;
+            Song selectedSong;
+
+            if (_library.Count == 1)
+            {
+                selectedLibrary = _library[0];
+            }
+            else
+            {
+                selectedLibrary = _library[rng.Next(0, _library.Count)];
+            }
+
+            if (selectedLibrary.Value.Songs.Count == 0)
+            {
+                return (null, null);
+            }
+
+            if (selectedLibrary.Value.Songs.Count == 1)
+            {
+                selectedSong = selectedLibrary.Value.Songs[0];
+            }
+            else
+            {
+                selectedSong = selectedLibrary.Value.Songs[rng.Next(0, selectedLibrary.Value.Songs.Count)];
+            }
+
+            return (selectedLibrary, selectedSong);
+        }
+
+        private void AddToLastPosted(GameSongLibrary library, Song song, List<LastPosted> lastPosteds)
+        {
+            lastPosteds.Add(new LastPosted() { GameName = library.GameName, SongName = song.Name });
+            if(lastPosteds.Count > _lastPostedAmount)
+            {
+                lastPosteds.RemoveAt(0);
+            }
         }
 
     }

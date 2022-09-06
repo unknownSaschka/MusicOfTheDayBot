@@ -66,7 +66,7 @@ namespace MusicOfTheDayBot
             return true;
         }
 
-        public string GetAllSchedules(out string info)
+        public string GetAllSchedules(out string info, DiscordHandler discord)
         {
             if(_schedules.Count == 0)
             {
@@ -86,7 +86,7 @@ namespace MusicOfTheDayBot
                     game = schedule.Game;
                 }
 
-                info += $"Id: {i}, Uhrzeit: {schedule.Time}, Games: {game} \r\n";
+                info += $"Id: {i}, Uhrzeit: {schedule.Time}, ChanneL: {discord.GetChannelName(schedule.ChannelInfo.GuildID, schedule.ChannelInfo.ChannelID)}, Games: {game} \r\n";
             }
 
             return info;

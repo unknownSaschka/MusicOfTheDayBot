@@ -11,7 +11,8 @@ namespace MusicOfTheDayBot
     {
         
 
-        private static string _songFolder = "./songlists/";
+        private static string SONGFOLDER = "./songlists/";
+        private static string LASTPOSTEDFILENAME = "./lastposted";
 
         public static List<GameSongLibrary> GetAllSongs()
         {
@@ -57,7 +58,7 @@ namespace MusicOfTheDayBot
         {
             try
             {
-                var fileNames = Directory.EnumerateFiles(_songFolder, "*.txt");
+                var fileNames = Directory.EnumerateFiles(SONGFOLDER, "*.txt");
                 return fileNames.ToList();
             }
             catch(Exception ex)
@@ -86,7 +87,7 @@ namespace MusicOfTheDayBot
             {
                 //File.Delete(library.FileName);
                 //File.CreateText(library.FileName);
-                Directory.CreateDirectory(_songFolder);
+                Directory.CreateDirectory(SONGFOLDER);
                 StreamWriter sw = File.CreateText(library.FileName);
 
                 sw.WriteLine($"#{library.GameName}");
@@ -108,12 +109,54 @@ namespace MusicOfTheDayBot
 
         public static string GetFilePath()
         {
-            return Path.Combine(_songFolder, $"{Path.GetRandomFileName()}.txt");
+            return Path.Combine(SONGFOLDER, $"{Path.GetRandomFileName()}.txt");
         }
 
         public static void DeleteFile(string fileName)
         {
             File.Delete(fileName);
+        }
+
+        public static void SaveLastPosted(List<LastPosted> lastPostedList)
+        {
+            try
+            {
+                var fs = File.CreateText(LASTPOSTEDFILENAME);
+
+                foreach(var lastPosted in lastPostedList)
+                {
+                    fs.WriteLine($"{lastPosted.GameName}|{lastPosted.SongName}");
+                }
+                fs.Flush();
+                fs.Close();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine("Could not save LastPosted file!");
+                Console.WriteLine(e.Message);
+            }
+        }
+
+        public static List<LastPosted> LoadLastPosted()
+        {
+            List<LastPosted> lastPostedList = new List<LastPosted>();
+
+            try
+            {
+                foreach(string lastPosted in File.ReadAllLines(LASTPOSTEDFILENAME))
+                {
+                    if (lastPosted.Length == 0) continue;
+                    var lp = lastPosted.Split('|');
+                    lastPostedList.Add(new LastPosted() { GameName = lp[0], SongName = lp[1] });
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Could not load LastPosted file!");
+                Console.WriteLine(e.Message);
+            }
+
+            return lastPostedList;
         }
     }
 }
