@@ -72,6 +72,16 @@ namespace MusicOfTheDayBot
         {
             //TODO: Implement only game selected
 
+            if(FirstAprilFool(out string aprilGame, out string aprilSong, out string aprilLink))
+            {
+                string aprilMessage = "";
+                aprilMessage += $"Der neue Song of the Day ist {aprilSong} aus {aprilGame}! \r\n";
+                aprilMessage += $"{aprilLink}";
+
+                discord.SendMessage(aprilMessage, channelInfo);
+                return;
+            }
+
             if(_library.Count == 0)
             {
                 return;
@@ -518,6 +528,23 @@ namespace MusicOfTheDayBot
             if(lastPosteds.Count > _lastPostedAmount)
             {
                 lastPosteds.RemoveAt(0);
+            }
+        }
+
+        private bool FirstAprilFool(out string game, out string song, out string youtubelink)
+        {
+            game = "Xenoblade 1";
+            song = "You will know our names - Kazoo Edition";
+            youtubelink = "https://www.youtube.com/watch?v=4Y0Z1GxtfkU";
+
+            //Check if it's 1st April
+            if (DateTime.Now.Day == 1 && DateTime.Now.Month == 4)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 
