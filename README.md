@@ -28,6 +28,7 @@
 
 - !list "[game]" - Lists the songlibrary of a game
 - !listgames - lists all games
+- !listlink "[game]" - Lists the songlibrary and the corresponding link
 
 - !addschedule [#channel] [time (e.g. 18:00)] "[game (optional)]" - adds a schedule for posting a song Sotd at 18:00 every day
 - !listschedules - lists all schedules with their ScheduleID

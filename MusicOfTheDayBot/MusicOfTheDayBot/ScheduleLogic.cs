@@ -21,8 +21,14 @@ namespace MusicOfTheDayBot
             for (int i = 0; i < _schedules.Count; i++)
             {
                 var schedule = _schedules[i];
-                if (NewSchedule(schedule.Time, i, out Timer timer))
+                if (NewSchedule(schedule.Time, i, out Timer? timer))
                 {
+                    if(timer == null)
+                    {
+                        Console.WriteLine("Fehler beim starten des Timer");
+                        continue;
+                    }
+
                     _schedules[i].Timer = timer;
                 }
                 else
@@ -36,7 +42,7 @@ namespace MusicOfTheDayBot
             _logic = logic;
         }
 
-        private bool NewSchedule(string time, int listID, out Timer timer)
+        private bool NewSchedule(string time, int listID, out Timer? timer)
         {
             string format = "HH:mm";
             CultureInfo provider = CultureInfo.InvariantCulture;
@@ -48,6 +54,7 @@ namespace MusicOfTheDayBot
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex);
                 timer = null;
                 return false;
             }
@@ -86,7 +93,7 @@ namespace MusicOfTheDayBot
                     game = schedule.Game;
                 }
 
-                info += $"Id: {i}, Uhrzeit: {schedule.Time}, ChanneL: {discord.GetChannelName(schedule.ChannelInfo.GuildID, schedule.ChannelInfo.ChannelID)}, Games: {game} \r\n";
+                info += $"Id: {i}, Uhrzeit: {schedule.Time}, Channel: {discord.GetChannelName(schedule.ChannelInfo.GuildID, schedule.ChannelInfo.ChannelID)}, Games: {game} \r\n";
             }
 
             return info;
@@ -94,11 +101,17 @@ namespace MusicOfTheDayBot
 
         public bool AddSchedule(string time, DiscordChannelInfo channelInfo, out string info)
         {
-            _schedules.Add(new Schedule { Time = time, ChannelInfo = channelInfo, });
+            _schedules.Add(new Schedule(time, channelInfo, "", null));
             int listID = _schedules.Count - 1;
 
-            if (NewSchedule(time, listID, out Timer timer))
+            if (NewSchedule(time, listID, out Timer? timer))
             {
+                if(timer == null)
+                {
+                    info = $"Fehler beim setzen des Timers!";
+                    return false;
+                }
+
                 _schedules[listID].Timer = timer;
                 FileHandlerSchedules.SaveSchedules(_schedules);
                 info = $"Schedule um {time} hinzugefügt";
@@ -125,7 +138,7 @@ namespace MusicOfTheDayBot
             }
             catch(Exception e) 
             {
-                
+                Console.WriteLine(e.Message);
             }
 
             info = "Schedule konnte nicht entfernt werden!";
@@ -141,7 +154,7 @@ namespace MusicOfTheDayBot
             }
             catch (Exception e)
             {
-
+                Console.WriteLine(e);
             }
         }
     }
@@ -151,6 +164,14 @@ namespace MusicOfTheDayBot
         public string Time;
         public DiscordChannelInfo ChannelInfo;
         public string Game;
-        public Timer Timer;     //wont be saved but created every time the program starts
+        public Timer? Timer;     //wont be saved but created every time the program starts
+
+        public Schedule(string time, DiscordChannelInfo channelInfo, string game, Timer? timer)
+        {
+            Time = time;
+            ChannelInfo = channelInfo;
+            Game = game;
+            Timer = timer;
+        }
     }
 }

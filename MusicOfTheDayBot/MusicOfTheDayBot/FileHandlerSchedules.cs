@@ -31,7 +31,7 @@ namespace MusicOfTheDayBot
             }
             catch (Exception ex)
             {
-
+                Console.WriteLine(ex.Message);
             }
         }
 
@@ -46,12 +46,13 @@ namespace MusicOfTheDayBot
                     string[] parts = line.Split('|');
                     string gameName = parts[0];
                     if (parts[0].Equals("null")) gameName = "";
-                    schedules.Add(new Schedule { Game = gameName, Time = parts[1], ChannelInfo = new Logic.DiscordChannelInfo(ulong.Parse(parts[2]), ulong.Parse(parts[3])) });
+                    schedules.Add(new Schedule(parts[1], new Logic.DiscordChannelInfo(ulong.Parse(parts[3]), ulong.Parse(parts[2])), gameName, null));
                 }
 
             }
             catch(Exception e)
             {
+                Console.WriteLine(e.Message);
                 return new List<Schedule>();
             }
 

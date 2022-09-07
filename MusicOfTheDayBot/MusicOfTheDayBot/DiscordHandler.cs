@@ -13,7 +13,7 @@ namespace MusicOfTheDayBot
     public class DiscordHandler
     {
         private Logic _logic;
-        private DiscordSocketClient _client;
+        private DiscordSocketClient? _client;
 
         private string token;
 
@@ -37,6 +37,7 @@ namespace MusicOfTheDayBot
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 token = "";
             }
             //Init().GetAwaiter().GetResult();
@@ -73,11 +74,25 @@ namespace MusicOfTheDayBot
 
         public bool SendMessage(string message, DiscordChannelInfo channelInfo)
         {
-
             //Debug
             Console.WriteLine(message);
 
+            if(_client == null)
+            {
+                Console.WriteLine("Discord Client is null");
+                return false;
+            }
+
             _client.GetGuild(channelInfo.GuildID).GetTextChannel(channelInfo.ChannelID).SendMessageAsync(message);
+            return true;
+        }
+
+        public bool SendMessage(List<string> messages, DiscordChannelInfo channelInfo)
+        {
+            foreach (var message in messages)
+            {
+                SendMessage(message, channelInfo);
+            }
 
             return true;
         }
@@ -86,6 +101,10 @@ namespace MusicOfTheDayBot
         private Task ReceiveMessage(SocketMessage arg)
         {
             var channelGuild = arg.Channel as SocketGuildChannel;
+            if(channelGuild == null)
+            {
+                return Task.CompletedTask;
+            }
 
             var discordMessage = new DiscordMessageInfo()
             {
@@ -96,9 +115,13 @@ namespace MusicOfTheDayBot
                 MentionedChannel = arg.MentionedChannels.FirstOrDefault(channelGuild).Id
             };
 
-            if (_logic.NewCommand(discordMessage, out string response))
+            if (_logic.NewCommand(discordMessage, out List<string> response))
             {
-                arg.Channel.SendMessageAsync(response);
+                foreach(var message in response)
+                {
+                    if(message.Length == 0) continue;
+                    arg.Channel.SendMessageAsync(message);
+                }
             }
 
             return Task.CompletedTask;
@@ -106,6 +129,12 @@ namespace MusicOfTheDayBot
 
         public string GetChannelName(ulong guildID, ulong channelID)
         {
+            if (_client == null)
+            {
+                Console.WriteLine("Discord Client is null");
+                return "";
+            }
+
             var guild = _client.GetGuild(guildID);
             var channel = guild.GetChannel(channelID);
             if (channel == null) return "Don't exist anymore!";

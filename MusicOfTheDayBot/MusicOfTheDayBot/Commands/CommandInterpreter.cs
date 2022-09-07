@@ -20,6 +20,7 @@ namespace MusicOfTheDayBot.Commands
          * !postrandom [#channel (optional)] - posts a randomly selected song
          * 
          * !list "[game]" - Lists the songlibrary of a game
+         * !listlink "[game]" - Lists the songlibrary and the corresponding link
          * !listgames - lists all games
          * 
          * !addschedule [#channel] [time (e.g. 18:00)] "[game (optional)]" - adds a schedule for posting a song Sotd at 18:00 every day

@@ -58,6 +58,7 @@ namespace MusicOfTheDayBot
         ScheduleLogic scheduler;
 
         private static int _lastPostedAmount = 10;
+        private static int _discordCharacterLimit = 2000;
 
         public Logic()
         {
@@ -131,6 +132,12 @@ namespace MusicOfTheDayBot
         {
             GameSongLibrary? gsl = null;
 
+            if(_library.Count == 0)
+            {
+                info = $"Song Library ist leer! Füge zuerst Spiele und Songs hinzu.";
+                return false;
+            }
+
             foreach(var lib in _library)
             {
                 if (lib.GameName.ToLower().Equals(game.ToLower()))
@@ -140,7 +147,7 @@ namespace MusicOfTheDayBot
                 }
             }
 
-            if(gsl.HasValue)
+            if(gsl.HasValue || gsl == null)
             {
                 info = $"Kein Spiel mit dem Namen {game} gefunden!";
                 return false;
@@ -174,9 +181,11 @@ namespace MusicOfTheDayBot
             }
         }
 
-        public void ListSongs(string game, out string info)
+        public void ListSongs(string game, bool withLink, out List<string> messages)
         {
             GameSongLibrary? gsl = null;
+            messages = new List<string>();
+            string info;
 
             foreach (var lib in _library)
             {
@@ -190,18 +199,38 @@ namespace MusicOfTheDayBot
             if (!gsl.HasValue)
             {
                 info = $"Kein Spiel mit dem Namen {game} gefunden!";
+                messages.Add(info);
                 return;
             }
 
             info = $"{gsl.Value.GameName}: \r\n";
+
+
             info += "```";
 
             foreach(Song song in gsl.Value.Songs)
             {
-                info += $"{song.Name}\r\n";
+                string toAdd = $"{song.Name}\r\n";
+                if (withLink)
+                {
+                    toAdd = $"{song.Name}, {song.YouTubeLink}\r\n";
+                }
+
+                info += toAdd;
+
+                if(info.Length > _discordCharacterLimit - 20)
+                {
+                    info = info.Remove(info.Length - toAdd.Length);     //removes the last string to be sure the ``` fits in the char limit
+                    info += "```";
+                    messages.Add(info);
+
+                    info = "```";       //start the new string
+                    info += toAdd;      //add the song to the new string
+                }
             }
 
             info += "```";
+            messages.Add(info);
         }
 
         public void ReadAll()
@@ -366,6 +395,7 @@ namespace MusicOfTheDayBot
 
             info += "!list \"[game]\" - Lists the songlibrary of a game \r\n";
             info += "!listgames - lists all games \r\n";
+            info += "!listlink \"[game]\" - Lists the songlibrary and the corresponding link";
 
             info += "!addschedule [#channel] [time (e.g. 18:00)] \"[game(optional)]\" - adds a schedule for posting a song Sotd at 18:00 every day \r\n";
             info += "!listschedules - lists all schedules with their ScheduleID \r\n";
@@ -373,12 +403,13 @@ namespace MusicOfTheDayBot
         }
 
         //Debug
-        public bool NewCommand(DiscordMessageInfo message, out string info)
+        public bool NewCommand(DiscordMessageInfo message, out List<string> messages)
         {
             //string command;
+            messages = new List<string>();
             List<string> args;
             commandInterpreter.ProcessCommand(message.Message, out string command, out args);
-            info = "";
+            string info = "";
 
             switch (command.ToLower())
             {
@@ -438,8 +469,16 @@ namespace MusicOfTheDayBot
                     {
                         info = "Command usage: !list \"[game]\"";
                     }
-                    ListSongs(args[0], out info);
-                    break;
+                    ListSongs(args[0], false, out messages);
+                    return true;
+                //break;
+                case "listlink":
+                    if (args.Count != 1)
+                    {
+                        info = "Command usage: !listlink \"[game]\"";
+                    }
+                    ListSongs(args[0], true, out messages);
+                    return true;
                 case "listgames":
                     if(args.Count != 0)
                     {
@@ -469,9 +508,11 @@ namespace MusicOfTheDayBot
                     break;
                 default:
                     info = "";
+                    messages.Add(info);
                     return false;
             }
 
+            messages.Add(info);
             return true;
         }
 

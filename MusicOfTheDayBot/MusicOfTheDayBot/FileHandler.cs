@@ -63,6 +63,7 @@ namespace MusicOfTheDayBot
             }
             catch(Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 return new List<string>();
             }
         }
@@ -75,7 +76,7 @@ namespace MusicOfTheDayBot
             }
             catch (Exception ex)
             {
-
+                Console.WriteLine(ex.Message);
             }
 
             return "";
@@ -85,8 +86,6 @@ namespace MusicOfTheDayBot
         {
             try
             {
-                //File.Delete(library.FileName);
-                //File.CreateText(library.FileName);
                 Directory.CreateDirectory(SONGFOLDER);
                 StreamWriter sw = File.CreateText(library.FileName);
 
