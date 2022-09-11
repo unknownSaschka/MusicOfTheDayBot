@@ -10,7 +10,9 @@ using static MusicOfTheDayBot.Logic;
 
 namespace MusicOfTheDayBot
 {
-    public class DiscordHandler
+    [RequireUserPermission(GuildPermission.Administrator, Group = "Permission")]
+    [RequireOwner(Group = "Permission")]
+    public class DiscordHandler : ModuleBase<SocketCommandContext>
     {
         private Logic _logic;
         private DiscordSocketClient? _client;
@@ -97,12 +99,25 @@ namespace MusicOfTheDayBot
             return true;
         }
 
-        [RequireUserPermission(ChannelPermission.ManageChannels)]
+        
         private Task ReceiveMessage(SocketMessage arg)
         {
             var channelGuild = arg.Channel as SocketGuildChannel;
             if(channelGuild == null)
             {
+                return Task.CompletedTask;
+            }
+
+            if (channelGuild.Guild == null)
+            {
+                return Task.CompletedTask;
+            }
+
+            var user = arg.Author as SocketGuildUser;
+            if(user == null) return Task.CompletedTask;
+
+            if(!user.GuildPermissions.Has(GuildPermission.ManageChannels)){
+                Console.WriteLine("User hat keine Permissions!");
                 return Task.CompletedTask;
             }
 
