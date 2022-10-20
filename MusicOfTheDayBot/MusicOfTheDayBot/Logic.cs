@@ -57,7 +57,9 @@ namespace MusicOfTheDayBot
         CommandInterpreter commandInterpreter;
         ScheduleLogic scheduler;
 
-        private static int _lastPostedAmount = 10;
+        //TODO: settings file
+        private static int _lastPostedAmount = 30;      //later changeable in settings
+        private static int _lastPostedTires = 20;       //later changeable in settings
         private static int _discordCharacterLimit = 2000;
 
         public Logic()
@@ -97,7 +99,7 @@ namespace MusicOfTheDayBot
 
             (selectedLibrary, selectedSong) = GetRandomSong();
 
-            while (tries < 10)
+            while (tries < _lastPostedTires)
             {
                 (selectedLibrary, selectedSong) = GetRandomSong();
 
@@ -111,7 +113,7 @@ namespace MusicOfTheDayBot
                 tries++;
             }
 
-            if(tries >= 10)
+            if(tries >= _lastPostedTires)
             {
                 (selectedLibrary, selectedSong) = GetRandomSong();
             }
