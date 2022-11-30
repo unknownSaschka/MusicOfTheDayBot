@@ -58,8 +58,8 @@ namespace MusicOfTheDayBot
         ScheduleLogic scheduler;
 
         //TODO: settings file
-        private static int _lastPostedAmount = 30;      //later changeable in settings
-        private static int _lastPostedTires = 20;       //later changeable in settings
+        private static int _lastPostedAmount = 100;      //later changeable in settings
+        private static int _lastPostedTries = 30;       //later changeable in settings
         private static int _discordCharacterLimit = 2000;
 
         public Logic()
@@ -85,6 +85,16 @@ namespace MusicOfTheDayBot
                 return;
             }
 
+            if(GameAnniversaries(out string anniversaryGame, out string anniversarySong, out string anniversaryLink))
+            {
+                string anniversaryMessage = "";
+                anniversaryMessage += $"Der neue Song of the Day ist {anniversarySong} aus {anniversaryGame}! \r\n";
+                anniversaryMessage += $"{anniversaryLink}";
+
+                discord.SendMessage(anniversaryMessage, channelInfo);
+                return;
+            }
+
             if(_library.Count == 0)
             {
                 return;
@@ -99,7 +109,7 @@ namespace MusicOfTheDayBot
 
             (selectedLibrary, selectedSong) = GetRandomSong();
 
-            while (tries < _lastPostedTires)
+            while (tries < _lastPostedTries)
             {
                 (selectedLibrary, selectedSong) = GetRandomSong();
 
@@ -113,7 +123,7 @@ namespace MusicOfTheDayBot
                 tries++;
             }
 
-            if(tries >= _lastPostedTires)
+            if(tries >= _lastPostedTries)
             {
                 (selectedLibrary, selectedSong) = GetRandomSong();
             }
@@ -589,6 +599,60 @@ namespace MusicOfTheDayBot
             {
                 return false;
             }
+        }
+
+        private bool GameAnniversaries(out string game, out string song, out string youtubelink)
+        {
+            game = "";
+            song = "";
+            youtubelink = "";
+
+            //Xenoblade 1
+            if(DateTime.Now.Day == 10 && DateTime.Now.Month == 6)
+            {
+                game = "Xenoblade 1";
+                song = "wegen des Jahrestages vom originalen Xenoblade 1 das Main Theme";
+                youtubelink = "https://www.youtube.com/watch?v=erKkWGfEW9U";
+                return true;
+            }
+
+            //Xenoblade 1 DE
+            if (DateTime.Now.Day == 29 && DateTime.Now.Month == 5)
+            {
+                game = "Xenoblade 1 Definitive Edition";
+                song = "wegen des Jahrestages von Xenoblade Definitive Edition das Main Theme";
+                youtubelink = "https://www.youtube.com/watch?v=d7V3M2DAq1E";
+                return true;
+            }
+
+            //Xenoblade 2
+            if (DateTime.Now.Day == 1 && DateTime.Now.Month == 12)
+            {
+                game = "Xenoblade 2";
+                song = "wegen des Jahrestages von Xenoblade 2 das Main Theme \"Where We Used To Be\"";
+                youtubelink = "https://www.youtube.com/watch?v=KDukhKF36nw";
+                return true;
+            }
+
+            //Xenoblade X
+            if (DateTime.Now.Day == 29 && DateTime.Now.Month == 4)
+            {
+                game = "Xenoblade X";
+                song = "wegen des Jahrestages von Xenoblade X das Main Theme";
+                youtubelink = "https://www.youtube.com/watch?v=6QGK6i51zIU";
+                return true;
+            }
+
+            //Xenoblade 3
+            if (DateTime.Now.Day == 29 && DateTime.Now.Month == 7)
+            {
+                game = "Xenoblade 3";
+                song = "wegen des Jahrestages von Xenoblade 3 das Main Theme \"Off-seer\"";
+                youtubelink = "https://www.youtube.com/watch?v=EkGTR_8wLmw";
+                return true;
+            }
+
+            return false;
         }
 
     }
