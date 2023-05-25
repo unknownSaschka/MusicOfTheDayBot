@@ -159,7 +159,13 @@ namespace MusicOfTheDayBot
                 }
             }
 
-            if(gsl.HasValue || gsl == null)
+            if(gsl == null)
+            {
+                info = $"Kein Spiel mit dem Namen {game} gefunden!";
+                return false;
+            }
+
+            if(!gsl.HasValue)
             {
                 info = $"Kein Spiel mit dem Namen {game} gefunden!";
                 return false;
@@ -379,6 +385,17 @@ namespace MusicOfTheDayBot
             return true;
         }
 
+        public bool ChangeLink(string gameName, string songName, string link, out string message)
+        {
+            if(!RemoveSong(gameName, songName, out message))
+            {
+                return false;
+            }
+
+            AddSong(gameName, songName, link, out message);
+            return true;
+        }
+
         private bool ContainsGame(string gameName)
         {
             foreach(var gsl in _library)
@@ -447,6 +464,11 @@ namespace MusicOfTheDayBot
                     AddSong(args[0], args[1], args[2], out info);
                     break;
                 case "changelink":
+                    if (args.Count != 3)
+                    {
+                        info = "Command usage: !changelink \"[game]\" \"[songname]\" \"[new youtubelink]\"";
+                    }
+                    ChangeLink(args[0], args[1], args[2], out info);
                     break;
                 case "removesong":
                     if(args.Count != 2)

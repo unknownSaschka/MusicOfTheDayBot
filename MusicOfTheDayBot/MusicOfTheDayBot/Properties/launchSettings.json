@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MusicOfTheDayBot": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}
